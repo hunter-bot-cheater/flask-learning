@@ -7,8 +7,7 @@ import redis
 import json
 import hashlib
 import time
-def get_task():
-    REDIS_CONN_PARAMS = {
+REDIS_CONN_PARAMS = {
         "host": '127.0.0.1',
         "password": '123456',
         "port": 6379,
@@ -17,6 +16,8 @@ def get_task():
         "socket_timeout": None,
 
     }
+def get_task():
+
     conn = redis.Redis(**REDIS_CONN_PARAMS)
 
     data = conn.brpop("spider_task_list", timeout=10)  # 在timeout等待时间内 如果队列有东西能拿 就立刻拿 最多等timeout秒
@@ -25,15 +26,7 @@ def get_task():
     return json.loads(data[1].decode('utf8'))  #json.loads将json字符串 ‘{"tid":tid,'data':ordered_string}'转换为字典{"tid":tid,'data':ordered_string}
 
 def set_result(tid,value):
-    REDIS_CONN_PARAMS = {
-        "host": '127.0.0.1',
-        "password": '123456',
-        "port": 6379,
-        "encoding": "utf-8",
-        "protocol": 2,
-        "socket_timeout": None,
 
-    }
     conn=redis.Redis(**REDIS_CONN_PARAMS)
     conn.hset("spider_result_list",tid,value)
 

@@ -5,7 +5,26 @@ from dbutils.pooled_db import PooledDB
 import uuid
 import redis
 import json
-app=Flask(__name__)
+
+REDIS_CONN_PARAMS = {
+        "host": '127.0.0.1',
+        "password": '123456',
+        "port": 6379,
+        "encoding": "utf-8",
+        "protocol": 2,
+        "socket_timeout": None,
+
+    }
+
+
+REDIS_POOL=redis.ConnectionPool(host='127.0.0.1',
+                                password='123456',
+                                port=6379, encoding='utf-8',
+                                protocol=2,
+                                socket_timeout=None,
+                                decode_responses=True,
+                                max_connections=100)
+
 
 POOL = PooledDB(
     creator=pymysql,               # 指定使用 PyMySQL 驱动
@@ -23,7 +42,7 @@ POOL = PooledDB(
     charset='utf8mb4'
 )
 
-
+app=Flask(__name__)
 # import uuid
 # uuid.uuid4()
 # UUID('e588aa79-0536-49e5-a202-60c2cbf6bdbb')
@@ -36,11 +55,14 @@ def fetch_one(sql,params):
     #                        charset='utf8mb4')
     conn = POOL.connection()  #从连接池里抓取一个链接
     cursor = conn.cursor()
-    cursor.execute(sql,params)  # [token],[token,](token,) 都行 把token传入%s 防止sql注入 (token) 这样不行 不是元组
-    result = cursor.fetchone()
-    cursor.close()
-    conn.close()  #不是关闭链接 将此链接交还给连接池
-    return result
+    try:
+        cursor.execute(sql,params)  # [token],[token,](token,) 都行 把token传入%s 防止sql注入 (token) 这样不行 不是元组
+        result = cursor.fetchone()
+
+        return result
+    finally:
+        cursor.close()
+        conn.close()  #不是关闭链接 将此链接交还给连接池  ,即使报错 也会把链接还给连接池
 
 
 @app.route("/index",methods=["POST"]) #不加methods  不支持post 请求  默认只支持get请求
@@ -87,15 +109,8 @@ def task():
     tid=str(uuid.uuid4())
     #1.放入到队列
     task_dict={'tid':tid,'data':oredered_string}
-    REDIS_CONN_PARAMS = {
-        "host": '127.0.0.1',
-        "password": '123456',
-        "port": 6379,
-        "encoding": "utf-8",
-        "protocol": 2
 
-    }
-    conn=redis.Redis(**REDIS_CONN_PARAMS)
+    conn=redis.Redis(connection_pool=REDIS_POOL)
     conn.lpush("spider_task_list",json.dumps(task_dict))  #把字典转化为json字符串 加入到队列
 
     #2.给用户返回任务
@@ -110,20 +125,12 @@ def result():
     if not tid:
         return jsonify({"status":False,'error':"参数错误"})
 
-    REDIS_CONN_PARAMS = {
-        "host": '127.0.0.1',
-        "password": '123456',
-        "port": 6379,
-        "encoding": "utf-8",
-        "protocol": 2
-
-    }
     conn = redis.Redis(**REDIS_CONN_PARAMS)
     sign=conn.hget("spider_result_list",tid)
     if not sign:
         return jsonify({"status":True,'data':"","message":"未完成，请继续等待"})
     sign_string=sign.decode('utf-8')
-    conn.hdel("spider_result_list",tid)
+    conn.hdel("spider_result_list",tid)  #拿取一次后就在结果队列中删除该tid和对应的data
     print(sign_string)
 
     return jsonify({"status":True,'data':sign_string})

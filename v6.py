@@ -2,8 +2,9 @@ from flask import Flask,request,jsonify
 import hashlib
 import pymysql
 from dbutils.pooled_db import PooledDB
-
-
+import uuid
+import redis
+import json
 app=Flask(__name__)
 
 POOL = PooledDB(
@@ -74,6 +75,25 @@ def index():
 
     return jsonify({"status":True,'data':sign})
 
+
+@app.route("/task",methods=["POST"])
+def task():
+
+
+    oredered_string=request.json.get("ordered_string")
+    if not oredered_string:
+        return jsonify({"status":False,'error':"参数错误"})
+
+    #生成任务id
+    tid=str(uuid.uuid4())
+    #1.放入到队列
+    task_dict={'tid':tid,'data':oredered_string}
+
+
+
+    #2.给用户返回任务
+
+    return jsonify({"status":True,'message':"正在处理中，预计1分钟"})
 
 
 if __name__=='__main__':

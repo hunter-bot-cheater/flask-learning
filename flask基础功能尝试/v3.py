@@ -7,7 +7,7 @@ app=Flask(__name__)
 # 通过生成凭证，与用户传过来的凭证比对，才允许访问
 
 def get_user_dict():
-    with open("db.txt",mode='r',encoding='utf-8') as f:
+    with open("db.txt", mode='r', encoding='utf-8') as f:
         info_dict={}
         for line in f:
             line=line.strip()

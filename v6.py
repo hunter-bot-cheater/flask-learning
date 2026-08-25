@@ -79,7 +79,6 @@ def index():
 @app.route("/task",methods=["POST"])
 def task():
 
-
     oredered_string=request.json.get("ordered_string")
     if not oredered_string:
         return jsonify({"status":False,'error':"参数错误"})
@@ -88,13 +87,45 @@ def task():
     tid=str(uuid.uuid4())
     #1.放入到队列
     task_dict={'tid':tid,'data':oredered_string}
+    REDIS_CONN_PARAMS = {
+        "host": '127.0.0.1',
+        "password": '123456',
+        "port": 6379,
+        "encoding": "utf-8",
+        "protocol": 2
 
-
+    }
+    conn=redis.Redis(**REDIS_CONN_PARAMS)
+    conn.lpush("spider_task_list",json.dumps(task_dict))  #把字典转化为json字符串 加入到队列
 
     #2.给用户返回任务
 
-    return jsonify({"status":True,'message':"正在处理中，预计1分钟"})
+    return jsonify({"status":True,"tid":tid,'message':"正在处理中，预计1分钟"})
 
 
+@app.route("/result",methods=["GET"])
+def result():
+    #/result?tid=.....
+    tid=request.args.get("tid")
+    if not tid:
+        return jsonify({"status":False,'error':"参数错误"})
+
+    REDIS_CONN_PARAMS = {
+        "host": '127.0.0.1',
+        "password": '123456',
+        "port": 6379,
+        "encoding": "utf-8",
+        "protocol": 2
+
+    }
+    conn = redis.Redis(**REDIS_CONN_PARAMS)
+    sign=conn.hget("spider_result_list",tid)
+    if not sign:
+        return jsonify({"status":True,'data':"","message":"未完成，请继续等待"})
+    sign_string=sign.decode('utf-8')
+    conn.hdel("spider_result_list",tid)
+    print(sign_string)
+
+    return jsonify({"status":True,'data':sign_string})
 if __name__=='__main__':
     app.run(host="127.0.0.1",port=5000)

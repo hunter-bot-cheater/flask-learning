@@ -49,3 +49,15 @@ def insert(sql,params):
     cursor.close()
     conn.close()
     return cursor.lastrowid  #新生成的数据的id
+
+
+def update(sql,params):
+    conn=POOL.connection()
+    cursor=conn.cursor()
+    cursor.execute(sql,params)
+    conn.commit()
+    affected_rows=cursor.rowcount
+    cursor.close()
+    conn.close()
+
+    return affected_rows

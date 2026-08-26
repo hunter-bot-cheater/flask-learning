@@ -16,6 +16,12 @@ def auth():#拦截器 没有session.get("user_info")值的人前置拦截
      return redirect("/login") #未登录 跳转回登录页面
 
 
+def get_real_name():
+    user_info=session.get("user_info")
+    real_name=user_info.get("real_name")
+    return real_name
+
+
 def create_app():
     app=Flask(__name__)
     app.secret_key=os.getenv("SECRET_KEY")
@@ -25,4 +31,5 @@ def create_app():
     app.register_blueprint(order.od)
 
     app.before_request(auth)
+    app.template_global()(get_real_name)
     return app

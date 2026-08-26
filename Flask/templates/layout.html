@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}订单平台{% endblock %}</title>
+    <link rel="stylesheet" href="/static/bootstrap-5.3.0-alpha1-dist/css/bootstrap.css">
+</head>
+<body>
+
+<!-- ========== 顶部导航栏（新增） ========== -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <!-- 左侧：品牌名称 -->
+        <a class="navbar-brand" href="/">老x订单平台</a>
+
+        <!-- 移动端折叠按钮 -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarNav" aria-controls="navbarNav"
+                aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- 导航链接和右侧用户信息 -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <!-- 左半部分：菜单项 -->
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/user/list">用户管理</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/order/list">订单管理</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown"
+                       role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Dropdown ▼
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="#">操作1</a></li>
+                        <li><a class="dropdown-item" href="#">操作2</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#">其他</a></li>
+                    </ul>
+                </li>
+            </ul>
+
+            <!-- 右半部分：显示当前用户 -->
+            <span class="navbar-text">
+                {% if get_real_name() %}
+                    欢迎, {{ get_real_name() }}
+                {% else %}
+                    <a href="/login">登录</a>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+</nav>
+
+<!-- ========== 页面主要内容区 ========== -->
+<div class="container">
+    {% block body %}{% endblock %}
+</div>
+
+<!-- ========== JavaScript 依赖 ========== -->
+<script src="/static/jquery-4.0.0.min.js"></script>
+<script src="/static/bootstrap-5.3.0-alpha1-dist/js/bootstrap.js"></script>
+
+</body>
+</html>

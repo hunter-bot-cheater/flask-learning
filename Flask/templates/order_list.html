@@ -1,10 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'layout.html' %}
+
+{%block body%}
+
+<div style="margin-bottom:10px;">
+        <a href="/order/create">添加</a>
+    </div>
     <table border="1">
         <thead>
             <tr>
@@ -27,5 +27,5 @@
         {% endfor %}
         </tbody>
     </table>
-</body>
-</html>
+
+{%endblock%}

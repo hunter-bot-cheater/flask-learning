@@ -1,5 +1,6 @@
-from flask import Blueprint,session,render_template
+from flask import Blueprint,session,render_template,request,redirect
 from utils import db
+from utils import cache
 #蓝图对象
 od=Blueprint("order",__name__)
 
@@ -30,9 +31,25 @@ def order_list():
 
     return "订单列表"
 
-@od.route('/order/create')
-def create_list():
-    return "创建订单"
+@od.route('/order/create',methods=['GET','POST'])
+def order_create():
+    #创建订单逻辑
+    if request.method=="GET":
+        return render_template('order_create.html')
+
+    url=request.form.get('url')
+    count=request.form.get('count')
+
+    #写入数据库
+    user_info=session.get('user_info')
+    params=[url,count,user_info['id']]
+    order_id=db.insert("insert into `order` (url,count,user_id,status) values (%s,%s,%s,1)",params)
+    print(order_id)
+
+    #写入redis队列
+    cache.push_queue(order_id)
+
+    return redirect('/order/list')
 
 @od.route('/order/delete')
 def delete_list():

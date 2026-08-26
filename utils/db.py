@@ -38,3 +38,14 @@ def fetch_all(sql,params):
     conn.close()
 
     return result
+
+
+
+def insert(sql,params):
+    conn=POOL.connection()
+    cursor=conn.cursor(cursor=cursors.DictCursor) #加了这个 返回的result才是字典
+    cursor.execute(sql,params)
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return cursor.lastrowid  #新生成的数据的id

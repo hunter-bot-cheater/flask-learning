@@ -28,3 +28,13 @@ def fetch_one(sql,params):
     conn.close()
 
     return result
+
+def fetch_all(sql,params):
+    conn=POOL.connection()
+    cursor=conn.cursor(cursor=cursors.DictCursor) #加了这个 返回的result才是字典
+    cursor.execute(sql,params)
+    result=cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    return result

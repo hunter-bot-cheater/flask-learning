@@ -1,4 +1,6 @@
-from flask import Blueprint,render_template,request,redirect
+from flask import Blueprint,render_template,request,redirect,session
+
+from utils import db
 import pymysql
 #蓝图对象
 ac=Blueprint("account",__name__)
@@ -15,14 +17,12 @@ def login():
     print(role, mobile, pwd)
 
     # 链接mysql 并执行sql语句查询用户名密码是否正确
-    conn=pymysql.connect(host='127.0.0.1',port=3306,user='root',password='123456',charset='utf8mb4',db='flask-learning')
-    cursor=conn.cursor()
-    cursor.execute("select * from userinfo where role=%s and mobile=%s and password=%s",[role,mobile,pwd])
-    user_dict=cursor.fetchone()
-    cursor.close()
-    conn.close()
-
+    user_dict=db.fetch_one("select * from userinfo where role=%s and mobile=%s and password=%s",[role,mobile,pwd])
+    print(user_dict)
     if user_dict:
+        #登录成功+跳转
+        session["user_info"]={"role":user_dict['role'],"real_name":user_dict['real_name'],"id":user_dict['id']}
+
         return redirect('/order/list')
     return render_template("login.html",error="用户名或密码错误")
 

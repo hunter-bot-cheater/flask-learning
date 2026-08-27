@@ -1,0 +1,69 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="container mt-4">
+    <!-- 页面标题 + 添加按钮（仅管理员可见） -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>👥 用户管理</h2>
+        {% if session.get('user_info') and session['user_info']['role'] == 2 %}
+        <a href="#" class="btn btn-success btn-sm">添加用户</a>
+        {% endif %}
+    </div>
+
+    <!-- 用户表格 -->
+    <div class="table-responsive">
+        <table class="table table-striped table-hover table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>手机号</th>
+                    <th>角色</th>
+                    <th>真实姓名</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if users %}
+
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>{{ user.mobile }}</td>
+                            <td>
+                                {% if user.role == 1 %}
+                                    <span class="badge bg-info">普通用户</span>
+                                {% elif user.role == 2 %}
+                                    <span class="badge bg-warning text-dark">管理员</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">未知</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ user.real_name }}</td>
+                            <td>
+                                <!-- 编辑按钮（仅本人或管理员可见） -->
+                                {% if session.get('user_info') and (session['user_info']['id'] == user.id or session['user_info']['role'] == 2) %}
+                                    <a href="/user/update?id={{ user.id }}" class="btn btn-outline-primary btn-sm"> 编辑</a>
+                                {% endif %}
+
+                                <!-- 删除按钮（仅管理员可见） -->
+                                {% if session.get('user_info') and session['user_info']['role'] == 2 %}
+                                    <form method="post" action="#" style="display: inline-block;"
+                                          onsubmit="return confirm('确认删除用户 {{ user.real_name }} 吗？此操作不可恢复！')">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">删除</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">暂无用户数据</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

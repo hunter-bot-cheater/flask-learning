@@ -31,13 +31,13 @@ def fetch_one(sql,params):
 
 def fetch_all(sql,params):
     conn=POOL.connection()
-    cursor=conn.cursor(cursor=cursors.DictCursor) #加了这个 返回的result才是字典
+    cursor=conn.cursor(cursor=cursors.DictCursor) #加了这个 每次返回的一条数据都是字典
     cursor.execute(sql,params)
     result=cursor.fetchall()
     cursor.close()
     conn.close()
 
-    return result
+    return result  #返回的是列表 里面每个元素是字典[{....},{.....}]
 
 
 

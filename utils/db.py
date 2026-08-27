@@ -61,3 +61,6 @@ def update(sql,params):
     conn.close()
 
     return affected_rows
+
+
+

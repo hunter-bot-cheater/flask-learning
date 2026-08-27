@@ -1,4 +1,4 @@
-from flask import Blueprint,render_template,request,redirect,session
+from flask import Blueprint,render_template,request,redirect,session,flash
 
 from utils import db
 import pymysql
@@ -17,7 +17,7 @@ def login():
     print(role, mobile, pwd)
 
     # 链接mysql 并执行sql语句查询用户名密码是否正确
-    user_dict=db.fetch_one("select * from userinfo where role=%s and mobile=%s and password=%s",[role,mobile,pwd])
+    user_dict=db.fetch_one("select * from userinfo where role=%s and mobile=%s and password=%s and is_deleted = 0",[role,mobile,pwd])
     print(user_dict)
     if user_dict:
         #登录成功+跳转
@@ -35,10 +35,10 @@ def user_list():
     id=user_info['id']
     role=user_info['role']
     if role==2:#管理员 显示全部用户
-        users=db.fetch_all("select * from userinfo",[])
+        users=db.fetch_all("select * from userinfo where is_deleted = 0",[])
         print("管理员")
     elif role==1:
-        user=db.fetch_one("select * from userinfo where id=%s",[id,])
+        user=db.fetch_one("select * from userinfo where id=%s and is_deleted = 0",[id,])
         users=[user] if user else []
 
     return render_template('user_list.html',users=users)
@@ -53,7 +53,7 @@ def user_update():
 
     if request.method=='GET':
         edit_id = request.args.get('id')
-        target_user = db.fetch_one("SELECT * FROM userinfo WHERE id=%s", [edit_id])
+        target_user = db.fetch_one("SELECT * FROM userinfo WHERE id=%s and is_deleted = 0", [edit_id])
         return render_template('user_update.html',role=role,user=target_user)
 
 
@@ -61,20 +61,20 @@ def user_update():
     edit_mobile=request.form.get("edit_mobile")
     edit_password=request.form.get("edit_password")
     edit_id=int(request.form.get("edit_id"))
-    edit_role=int(request.form.get("edit_role"))
+    edit_role=request.form.get("edit_role")
 
-    target_user = db.fetch_one("SELECT * FROM userinfo WHERE id=%s", [edit_id])
+    target_user = db.fetch_one("SELECT * FROM userinfo WHERE id=%s and is_deleted = 0", [edit_id])
     password=target_user['password']
 
     if edit_password and edit_password != password:
-        db.update("update userinfo set password=%s where id=%s",[edit_password,edit_id])
+        db.update("update userinfo set password=%s where id=%s and is_deleted = 0",[edit_password,edit_id])
     if edit_password ==password:
         return render_template('user_update.html',role=role,user=target_user,error="新密码不能与原密码相同")
 
     if edit_mobile :
-        db.update("update userinfo set mobile=%s where id=%s",[edit_mobile,edit_id])
+        db.update("update userinfo set mobile=%s where id=%s and is_deleted = 0",[edit_mobile,edit_id])
     if edit_name:
-        db.update("update userinfo set real_name=%s where id =%s",[edit_name,edit_id])
+        db.update("update userinfo set real_name=%s where id =%s and is_deleted = 0",[edit_name,edit_id])
 
     if role==2:
         if edit_id==id and edit_role==1:
@@ -85,7 +85,36 @@ def user_update():
     if id==edit_id:
         session['user_info']={"role":role,"real_name":edit_name,"id":edit_id}
 
+    flash(f'用户 {target_user["real_name"]} 信息已编辑', 'success')
     return redirect('/user/list')
+
+
+@ac.route('/user/delete/<int:delete_user_id>',methods=['POST'])
+def user_delete(delete_user_id):
+    user_info=session.get('user_info')
+    role=user_info['role']
+    user_id=user_info['id']
+    if role!=2:
+        flash('无权限执行此操作', 'danger')
+        return redirect('/user/list')
+
+    if user_id==delete_user_id:
+        flash('不能删除自己', 'warning')
+        return redirect('/user/list')
+
+    target=db.fetch_one("select* from userinfo where id=%s and is_deleted=0",[delete_user_id,])
+    if not target :
+        flash('用户不存在', 'danger')
+        return redirect('/user/list')
+
+    delete_rows=db.update("update userinfo set is_deleted =1 where id=%s",[delete_user_id,])
+    print(f"删除了{delete_rows}行")
+
+    flash(f'用户 {target["real_name"]} 已删除', 'success')
+    return redirect('/user/list')
+
+
+
 
 
 

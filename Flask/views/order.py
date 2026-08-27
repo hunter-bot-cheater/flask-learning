@@ -13,10 +13,10 @@ def order_list():
     real_name=user_info['real_name']
     if role==2:
         # select * from order
-        data_list=db.fetch_all("select * from `order` left join userinfo on order.user_id=userinfo.id",[])
+        data_list=db.fetch_all("select * from `order` left join userinfo on order.user_id=userinfo.id where userinfo.is_deleted=0",[])
     else:
         # select * from order where user_id = user_info['id']
-        data_list=db.fetch_all("select * from `order` left join userinfo on order.user_id=userinfo.id where order.user_id = %s",[user_info['id'],])
+        data_list=db.fetch_all("select * from `order` left join userinfo on order.user_id=userinfo.id where order.user_id = %s and userinfo.is_deleted=0",[user_info['id'],])
 
 
     status_dict={
@@ -28,8 +28,6 @@ def order_list():
     print(data_list)
     return render_template("order_list.html",data_list=data_list,status_dict=status_dict,real_name=real_name)
 
-
-    return "订单列表"
 
 @od.route('/order/create',methods=['GET','POST'])
 def order_create():

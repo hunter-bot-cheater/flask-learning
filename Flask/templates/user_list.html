@@ -47,9 +47,8 @@
 
                                 <!-- 删除按钮（仅管理员可见） -->
                                 {% if session.get('user_info') and session['user_info']['role'] == 2 %}
-                                    <form method="post" action="#" style="display: inline-block;"
-                                          onsubmit="return confirm('确认删除用户 {{ user.real_name }} 吗？此操作不可恢复！')">
-                                        <button type="submit" class="btn btn-outline-danger btn-sm">删除</button>
+                                    <form method="post" action="/user/delete/{{ user.id }}" ...>
+                                        <button type="submit">删除</button>
                                     </form>
                                 {% endif %}
                             </td>
